@@ -1,0 +1,61 @@
+swagger: "2.0"
+
+info:
+  description: "API to generate and email invoices as PDF files."
+  version: "1.0.0"
+  title: "Invoice Mailer"
+host: "localhost"
+basePath: "/"
+tags:
+- name: "invoice"
+  description: "Operation with invoices"
+schemes:
+- "http"
+
+paths:
+  /invoice:
+    post:
+      tags:
+      - "invoice"
+      summary: "Request for new invoice."
+      description: "New invoice will be generated with provided data and sent to provided email."
+      operationId: "requestInvoice"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Invoice data to be used in PDF generation."
+        required: true
+        schema:
+          $ref: "#/definitions/Invoice"
+      responses:
+        "200":
+          description: "OK"  
+        "404":
+          description: "Customer not found"
+        "405":
+          description: "Invalid input"
+
+definitions:
+  Invoice:
+    type: "object"
+    properties:
+      customerEmail:
+        type: "string"
+        format: "email"
+      services:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            desctiption:
+              type: "string"
+            price:
+              type: "number"
+              
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"
