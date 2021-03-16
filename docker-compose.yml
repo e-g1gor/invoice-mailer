@@ -1,6 +1,6 @@
 version: "3"
 
-# services:
+services:
 
 #   postgres:
 #     image: postgres
@@ -8,6 +8,20 @@ version: "3"
 #     environment:
 #       POSTGRES_PASSWORD: changeme
 
-#   invoice-mailer:
-#     image: node
-#     restart: on-failure
+  invoice-mailer:
+    build:
+      context: ./
+      dockerfile: ./docker/node-server/Dockerfile
+    container_name: invoice-mailer
+    restart: on-failure
+    environment:
+      NODE_ENV: development
+      PORT: 80
+      # NODE_ENV: production
+    volumes:
+      - ~/.npm:/home/node/.npm
+      - ./docker/node-server/entrypoint.sh:/usr/webapp/entrypoint.sh
+      - ./bin:/usr/webapp/bin
+      - ./volumes/data:/usr/webapp/data
+    ports:
+      - 3000:80
