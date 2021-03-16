@@ -1,3 +1,12 @@
+-
+  var summary = invoiceData.summary = {};
+  summary.subtotal = invoiceData.services.reduce(
+      (rez, service) => rez += Number(service.price),
+      0
+    );
+  summary.taxtotal = Number(summary.subtotal * invoiceData.tax);
+  summary.total = Number(summary.subtotal + summary.taxtotal);
+
 <!DOCTYPE html>
 html(lang="en")
   head
@@ -26,7 +35,7 @@ html(lang="en")
         width: 100%;
       }
       .root > header, section, footer {
-        padding: 0 5px;
+        padding: 0 50px;
         display: flex;
         flex-direction: column;
       }
@@ -37,16 +46,21 @@ html(lang="en")
       .logo {
         justify-content: center;
         color: white; 
-        height: 130px;
+        height: 140px;
         background-color: #536476;
         align-items: center;
       }
       .logo_image {
-        width: 50px;
-        height: 50px;
+        width: 70px;
+        height: 70px;
       }
-      .summary {          
+      .summary {    
+        margin-top: 30px;      
         align-items: center; 
+      }
+      .summary_title {
+        margin: 0;
+        font-size: 18px;
       }
       .summary_paybutton {
         color: white;
@@ -62,9 +76,12 @@ html(lang="en")
         display: flex;
         justify-content: space-between;
       }
+      .detalization_total {
+        font-size: 18px;
+      }
       .footer {
         margin-top: 20px;
-        padding: 10px 0;
+        padding: 20px 0;
         align-items: center;  
         border-top: 2px #DDD solid;
         background-color: #EEEEEE;
@@ -73,55 +90,69 @@ html(lang="en")
         text-align: center;
       }
   body.root
-
     header.logo
-      img.logo_image(src=`data:image/webp;base64,${logo}` alt="Logo")
+      img.logo_image(src=`data:image/webp;base64,${img.logo}` alt="Logo")
       h1 Brick and Willow Design
 
     section.summary
-      h1.summary_title New Invoice
-      p.summary_info $1111.00 due on Apr. 1, 2020
+      -
+        let dateFormat = {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        };
+      p.summary_title New Invoice
+      p.summary_info.
+        $#{Number(invoiceData.summary.total.toFixed(2))}
+        due on 
+        #{invoiceData.dueDate.toLocaleDateString('en-us', dateFormat)}
       a.summary_paybutton(href='#') Pay Invoice
       p
       hr.linebreak
 
     section.invoice
       p
-        b Invoice #666
+        b Invoice ##{invoiceData._id}
         br
-        span April 1, 2020 
+        -
+          dateFormat = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          };
+        span=invoiceData.dueDate.toLocaleDateString('en-us', dateFormat)
       hr.linebreak
       p 
         b Customer
         br
-        span John Smith
+        span=invoiceData.customerFullName
         br
-        span user@example.com
+        span=invoiceData.customerEmail
       hr.linebreak
-      p The invoice is for work completed by Brick and Willow Design, with the final product delivered on January 5th, 2020.
+      p.
+        The invoice is for work completed by Brick and Willow Design,
+        with the final product delivered on #{invoiceData.completeDate.toLocaleDateString('en-us', dateFormat)}.
       hr.linebreak
       p It was pleasure to work with you and your team. Please let me know if you have any questions and we hope you will keep us in mind for future freelance projects. Thank you!
       hr.linebreak
     
     section.detalization
-      p.detalization_item
-        b Service description
-        b $000
-      p.detalization_item
-        b Service description
-        b $000
+      each service in invoiceData.services
+        p.detalization_item
+          b=service.description
+          b $#{Number(service.price).toFixed(2)}
       hr.linebreak
       p.detalization_subtotal
         p
           span Subtotal
-          span $000
+          span $#{Number(summary.subtotal).toFixed(2)}
         p
           span Tax
-          span $000
+          span $#{Number(summary.taxtotal).toFixed(2)}
       hr.linebreak
       p.detalization_total
         b Total Due
-        b $000
+        b $#{Number(summary.total).toFixed(2)}
 
     footer.footer
       p
@@ -137,4 +168,4 @@ html(lang="en")
           a(href='#') Privacy
         br
         span C 2018 Square, Inc.
-      p Icon    
+      img.footer_image(src=`data:image/webp;base64,${img.footer}` alt="Logo")   

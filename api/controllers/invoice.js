@@ -11,17 +11,25 @@ class invoiceController {
    * @param {*} req 
    * @param {*} res 
    */
-  static async requestInvoice(req,res) {
+  static async requestInvoice(req, res) {
     // TODO: log request to db
     // TODO: shedule pdf generation
     // TODO: shedule mail
     try {
+      /** Mock invoice data */
+      const invoiceData = require('../mocks/invoice')
+      // Render HTML
       const html = pug.renderFile('./api/views/invoice/invoice.pug', {
-        logo: Buffer.from(fs.readFileSync('./api/views/invoice/logo.webp')).toString('base64'),
+        img: {
+          logo: Buffer.from(fs.readFileSync('./api/views/invoice/logo.webp')).toString('base64'),
+          footer: Buffer.from(fs.readFileSync('./api/views/invoice/footerimg.webp')).toString('base64')
+        },
+        invoiceData: invoiceData
       })
+      console.log(invoiceData);
       res.send(html);
-    } catch (err) { 
-      console.log(err); 
+    } catch (err) {
+      console.log(err);
     }
   }
 }
