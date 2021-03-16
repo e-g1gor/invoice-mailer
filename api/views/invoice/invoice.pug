@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Brick and Willow Design | Invoice
+    style(type='text/css').
+      * {
+        font-family: inherit;
+        font-size: inherit;
+      }
+      a {
+        text-decoration: none;
+        cursor: pointer;
+        color: inherit;
+      }
+      h1 {
+        font-weight: normal;
+        font-size: 18px;
+      }
+      html, body {
+        font-family: Roboto, Arial;
+        font-size: 14px;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+      .root > header, section, footer {
+        padding: 0 5px;
+        display: flex;
+        flex-direction: column;
+      }
+      .linebreak {
+        width: 100%;
+        border-color: #FFF;
+      }
+      .logo {
+        justify-content: center;
+        color: white; 
+        height: 130px;
+        background-color: #536476;
+        align-items: center;
+      }
+      .logo_image {
+        width: 50px;
+        height: 50px;
+      }
+      .summary {          
+        align-items: center; 
+      }
+      .summary_paybutton {
+        color: white;
+        font-weight: bold;
+        background-color: #536476;
+        width: 250px;
+        text-align: center;
+        padding: 12px 0px;
+        border-radius: 4px;
+      }
+      .detalization > p {
+        margin: 5px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      .footer {
+        margin-top: 20px;
+        padding: 10px 0;
+        align-items: center;  
+        border-top: 2px #DDD solid;
+        background-color: #EEEEEE;
+      }
+      .footer > p {
+        text-align: center;
+      }
+  body.root
+
+    header.logo
+      img.logo_image(src=`data:image/webp;base64,${logo}` alt="Logo")
+      h1 Brick and Willow Design
+
+    section.summary
+      h1.summary_title New Invoice
+      p.summary_info $1111.00 due on Apr. 1, 2020
+      a.summary_paybutton(href='#') Pay Invoice
+      p
+      hr.linebreak
+
+    section.invoice
+      p
+        b Invoice #666
+        br
+        span April 1, 2020 
+      hr.linebreak
+      p 
+        b Customer
+        br
+        span John Smith
+        br
+        span user@example.com
+      hr.linebreak
+      p The invoice is for work completed by Brick and Willow Design, with the final product delivered on January 5th, 2020.
+      hr.linebreak
+      p It was pleasure to work with you and your team. Please let me know if you have any questions and we hope you will keep us in mind for future freelance projects. Thank you!
+      hr.linebreak
+    
+    section.detalization
+      p.detalization_item
+        b Service description
+        b $000
+      p.detalization_item
+        b Service description
+        b $000
+      hr.linebreak
+      p.detalization_subtotal
+        p
+          span Subtotal
+          span $000
+        p
+          span Tax
+          span $000
+      hr.linebreak
+      p.detalization_total
+        b Total Due
+        b $000
+
+    footer.footer
+      p
+        b Brick and Willow Design
+        br
+        span 10 Main Street, San Francisco, CA 94105
+        br
+        span 415-555-4721
+      p
+        b
+          a(href='#') Security
+          span &nbsp;|&nbsp;
+          a(href='#') Privacy
+        br
+        span C 2018 Square, Inc.
+      p Icon    
