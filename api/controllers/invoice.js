@@ -2,6 +2,7 @@
 const pug = require('pug')
 const fs = require('fs-extra')
 const path = require('path')
+const htmlToPdf = require('html-pdf-node')
 const invoiceService = require('../services/invoice')
 
 class invoiceController {
@@ -26,7 +27,15 @@ class invoiceController {
         },
         invoiceData: invoiceData
       })
-      console.log(invoiceData);
+      const pdfPtions = { 
+        printBackground:true,
+        width: "600px"
+      }
+      const pdfBuffer = await htmlToPdf.generatePdf(
+        { content: html },
+        pdfPtions
+      )
+      fs.outputFileSync("./data/test.pdf", pdfBuffer)
       res.send(html);
     } catch (err) {
       console.log(err);
