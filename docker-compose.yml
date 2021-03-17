@@ -20,8 +20,10 @@ services:
       # NODE_ENV: production
     volumes:
       - ~/.npm:/home/node/.npm
-      - ./docker/node-server/entrypoint.sh:/usr/webapp/entrypoint.sh
+      - ./api:/usr/webapp/api
+      - ./config:/usr/webapp/config
       - ./bin:/usr/webapp/bin
+      - ./docker/node-server/entrypoint.sh:/usr/webapp/entrypoint.sh
       - ./volumes/data:/usr/webapp/data
     ports:
       - 3000:80
