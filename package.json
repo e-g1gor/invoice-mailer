@@ -20,6 +20,8 @@
     "@types/fs-extra": "^9.0.8",
     "@types/http-errors": "^1.8.0",
     "@types/morgan": "^1.9.2",
-    "@types/pug": "^2.0.4"
+    "@types/pg": "^7.14.11",
+    "@types/pug": "^2.0.4",
+    "pg": "^8.5.1"
   }
 }
