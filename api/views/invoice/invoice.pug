@@ -112,7 +112,7 @@ html(lang="en")
 
     section.invoice
       p
-        b Invoice ##{invoiceData._id}
+        b Invoice ##{invoiceData.id}
         br
         -
           dateFormat = {
@@ -128,6 +128,11 @@ html(lang="en")
         span=invoiceData.customerFullName
         br
         span=invoiceData.customerEmail
+        if invoiceData.company
+          br
+          b Company
+          br
+          span=invoiceData.company
       hr.linebreak
       p.
         The invoice is for work completed by Brick and Willow Design,
