@@ -14,14 +14,12 @@ const DAO = require("./dao");
  */
 const invoiceService = {
   /**
-   *
+   * Load customer data by email
    * @param {String} email customer email
+   * @returns query rezult
    */
   async getCustomerByEmail(email) {
-    return await DAO.query(
-      `SELECT * FROM ${DEFAULT_SCHEMA}.customers WHERE email = $1`,
-      [email]
-    );
+    return await DAO.query(`SELECT * FROM customers WHERE email = $1`, [email]);
   },
 
   /**

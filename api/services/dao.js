@@ -1,7 +1,5 @@
 "use strict";
 
-const DEFAULT_SCHEMA = process.env.DEFAULT_SCHEMA || "mydb";
-
 const { Pool } = require("pg");
 var pool = new Pool();
 
@@ -32,3 +30,4 @@ const DAO = {
 };
 
 module.exports = DAO;
+exports.DAO = DAO;
