@@ -8,7 +8,6 @@ const htmlToPdf = require("html-pdf-node");
 
 const DAO = require("./dao");
 
-// TODO: implement invoice related logic
 /**
  * Invoice service
  */
@@ -16,17 +15,36 @@ const invoiceService = {
   /**
    * Load customer data by email
    * @param {String} email customer email
-   * @returns query rezult
+   * @returns query result
    */
-  async getCustomerByEmail(email) {
-    return await DAO.query(`SELECT * FROM customers WHERE email = $1`, [email]);
+  getCustomerByEmail(email) {
+    return DAO.query(`SELECT * FROM customers WHERE email = $1`, [email]);
   },
 
   /**
-   *
-   * @param {*} invoiceData
+   * Log invoice request to db
+   * @param {*} invoiceData invoice request body
+   * @param {"created"|"complete"|"failed"} status invoice request status
+   * @returns query result
    */
-  async logInvoiceRequestToDB(invoiceData) {},
+  logInvoiceRequestToDB(invoiceData, status="created") {
+    return DAO.query(
+      `INSERT INTO invoices (invoice_data, status) VALUES($1, $2) RETURNING *`,
+      [JSON.stringify(invoiceData), status]
+    );
+  },
+
+  /**
+   * Update invoice status
+   * @param {Number} id invoice id
+   * @param {"created"|"complete"|"failed"} status invoice request status
+   */
+  updateInvoiceStatus(id, status) {
+    return DAO.query(`UPDATE invoices SET status = $1 WHERE id = $2`, [
+      status,
+      id,
+    ]);
+  },
 
   /**
    *

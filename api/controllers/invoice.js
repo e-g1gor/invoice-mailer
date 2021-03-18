@@ -24,8 +24,8 @@ const validate = {
 class invoiceController {
   /**
    * Create invoice with provided data and send pdf on customer email
-   * @param {*} req 
-   * @param {*} res 
+   * @param {*} req
+   * @param {*} res
    */
   static async requestInvoice(req, res) {
     // TODO: use some task sheduling
@@ -33,10 +33,12 @@ class invoiceController {
       const bodyCheck = validate.requestInvoiceBody(req.body);
       if (bodyCheck)
         return res.status(bodyCheck.status).send(bodyCheck.message);
-      const invoiceData = req.body;
-      // TODO: validate body
-      // TODO: log request to db
-      const newInvoiceRecord = { id: 666 };
+      const invoiceData = req.body; // Create log record
+      const newInvoiceQuery = await invoiceService.logInvoiceRequestToDB(
+        invoiceData
+      );
+      const newInvoiceRecord = newInvoiceQuery.rows[0];
+      // const newInvoiceRecord = { id: 666 };
       // Load customer data
       const customerDataQuery = await invoiceService.getCustomerByEmail(
         invoiceData.customerEmail
@@ -65,11 +67,19 @@ class invoiceController {
       // Render pdf
       const pdfBuffer = await invoiceService.renderHTMLToPDF(html);
       // TODO: mail invoice
+      // invoiceServise.sendInvoiceToCustomer(html, txt, attachments, email)
+      // Update invoice log record
+      await invoiceService.updateInvoiceStatus(invoiceData.id, "complete");
       res.send(
         `OK. Invoice #${newInvoiceRecord.id} sent to ${invoiceData.customerEmail}`
       );
     } catch (err) {
-      res.status(500).send(err);
+      res.status(500).send(JSON.stringify(err));
+      // Update invoice log record (or delete?)
+      await invoiceService.updateInvoiceStatus(
+        { error: err, req: req },
+        "failed"
+      );
     }
   }
 }
