@@ -1,5 +1,11 @@
 "use strict";
+
 const invoiceService = require("../services/invoice");
+const nodemailer = require("nodemailer");
+const mg = require("nodemailer-mailgun-transport");
+const mailConfig = require("../../config/mail");
+const { mailgunAuth, myEmail } = mailConfig;
+const nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth));
 
 /**
  * Request validation
@@ -38,7 +44,6 @@ class invoiceController {
         invoiceData
       );
       const newInvoiceRecord = newInvoiceQuery.rows[0];
-      // const newInvoiceRecord = { id: 666 };
       // Load customer data
       const customerDataQuery = await invoiceService.getCustomerByEmail(
         invoiceData.customerEmail
@@ -66,20 +71,38 @@ class invoiceController {
       );
       // Render pdf
       const pdfBuffer = await invoiceService.renderHTMLToPDF(html);
-      // TODO: mail invoice
-      // invoiceServise.sendInvoiceToCustomer(html, txt, attachments, email)
+      // Send invoice to customer
+      let mailContent = {
+        from: myEmail,
+        to: invoiceData.customerEmail,
+        subject: `(Test email. No opt-out required) Invoice #${newInvoiceRecord.id} from Brick and Willow Design`,
+        "h:Reply-To": myEmail,
+        html,
+        text: "See your invoice in attachment.",
+        attachments: [
+          {
+            cid: "invoice.pdf",
+            content: pdfBuffer.toString("base64"),
+            encoding: "base64",
+          },
+        ],
+      };
+      const mailStatus = await nodemailerMailgun.sendMail(mailContent);
       // Update invoice log record
       await invoiceService.updateInvoiceStatus(invoiceData.id, "complete");
       res.send(
         `OK. Invoice #${newInvoiceRecord.id} sent to ${invoiceData.customerEmail}`
       );
     } catch (err) {
-      res.status(500).send(JSON.stringify(err));
+      let error;
+      try {
+        error = JSON.stringify(err);
+      } catch (_) {
+        error = "No error data available.";
+      }
+      res.status(500).send();
       // Update invoice log record (or delete?)
-      await invoiceService.updateInvoiceStatus(
-        { error: err, req: req },
-        "failed"
-      );
+      await invoiceService.updateInvoiceStatus({ error, req }, "failed");
     }
   }
 }
