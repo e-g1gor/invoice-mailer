@@ -1,6 +1,8 @@
 -- Init schema
 CREATE SCHEMA mydb;
 
+ALTER ROLE postgres SET search_path TO mydb;
+
 -- Create tables
 -- Customers
 CREATE TABLE mydb.customers(
