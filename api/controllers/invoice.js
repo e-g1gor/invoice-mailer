@@ -1,29 +1,75 @@
 "use strict";
-const fs = require("fs-extra");
 const invoiceService = require("../services/invoice");
+
+/**
+ * Request validation
+ */
+const validate = {
+  requestInvoiceBody(data) {
+    // Verify fields
+    const missingFieldsTest = [
+      "dueDate",
+      "completeDate",
+      "customerEmail",
+      "services",
+    ].every((field) => Object.keys(data).includes(field));
+    if (!missingFieldsTest)
+      return {
+        status: 400,
+        message: "Malformed request: " + JSON.stringify(data),
+      };
+  },
+};
 
 class invoiceController {
   /**
-
+   * Create invoice with provided data and send pdf on customer email
    * @param {*} req 
    * @param {*} res 
    */
   static async requestInvoice(req, res) {
     // TODO: use some task sheduling
     try {
-      /** Mock invoice data */
-      // TODO: load data from db
-      const invoiceData = require("../mocks/invoice");
+      const bodyCheck = validate.requestInvoiceBody(req.body);
+      if (bodyCheck)
+        return res.status(bodyCheck.status).send(bodyCheck.message);
+      const invoiceData = req.body;
+      // TODO: validate body
       // TODO: log request to db
+      const newInvoiceRecord = { id: 666 };
+      // Load customer data
+      const customerDataQuery = await invoiceService.getCustomerByEmail(
+        invoiceData.customerEmail
+      );
+      const customerData = customerDataQuery.rows[0];
+      if (customerDataQuery.rows.length === 0)
+        return res
+          .status(404)
+          .send(
+            `Can't find customer with email: <${invoiceData.customerEmail}>`
+          );
+      // Format invoice data
+      Object.assign(invoiceData, {
+        id: newInvoiceRecord.id,
+        customerFullName: customerData.firstname + " " + customerData.lastname,
+        company: customerData.company,
+        completeDate: new Date(invoiceData.completeDate),
+        dueDate: new Date(invoiceData.dueDate),
+        tax: invoiceData.tax || 0,
+      });
+      // Render html
       const html = await invoiceService.RenderPugTemplate(
         "./api/views/invoice",
         invoiceData
       );
+      // Render pdf
       const pdfBuffer = await invoiceService.renderHTMLToPDF(html);
-      fs.outputFileSync("./data/test.pdf", pdfBuffer);
-      res.send(html);
+      // TODO: mail invoice
+      res.send(
+        `OK. Invoice #${newInvoiceRecord.id} sent to ${invoiceData.customerEmail}`
+      );
     } catch (err) {
-      console.log(err);
+      res.status(500).send(err);
     }
   }
 }
