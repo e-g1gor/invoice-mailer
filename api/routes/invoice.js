@@ -3,6 +3,6 @@ var router = express.Router();
 const invoiceController = require("../controllers/invoice");
 
 /* Generate invoice */
-router.get("/", invoiceController.requestInvoice);
+router.post("/", invoiceController.requestInvoice);
 
 module.exports = router;
