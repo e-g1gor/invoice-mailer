@@ -10,7 +10,7 @@ CREATE TABLE mydb.customers(
   firstname VARCHAR (1024) NOT NULL,
   lastname VARCHAR (1024) NOT NULL,
   company VARCHAR (1024),
-  email VARCHAR (1024) NOT NULL
+  email VARCHAR (1024) NOT NULL UNIQUE
 );
 
 -- Invoices
