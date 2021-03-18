@@ -27,7 +27,7 @@ const invoiceService = {
    * @param {"created"|"complete"|"failed"} status invoice request status
    * @returns query result
    */
-  logInvoiceRequestToDB(invoiceData, status="created") {
+  logInvoiceRequestToDB(invoiceData, status = "created") {
     return DAO.query(
       `INSERT INTO invoices (invoice_data, status) VALUES($1, $2) RETURNING *`,
       [JSON.stringify(invoiceData), status]
@@ -66,9 +66,10 @@ const invoiceService = {
   },
 
   /**
-   *
-   * @param {String} html
-   * @param {*} options
+   * Render pdf
+   * @param {String} html generated invoice html
+   * @param {*} options pdf render options
+   * @returns buffer with rendered pdf
    */
   async renderHTMLToPDF(html, options) {
     // Merge default and provided options
