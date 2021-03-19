@@ -30,4 +30,3 @@ const DAO = {
 };
 
 module.exports = DAO;
-exports.DAO = DAO;

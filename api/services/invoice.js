@@ -17,8 +17,8 @@ const invoiceService = {
    * @param {String} email customer email
    * @returns query result
    */
-  getCustomerByEmail(email) {
-    return DAO.query(`SELECT * FROM customers WHERE email = $1`, [email]);
+  async getCustomerByEmail(email) {
+    return await DAO.query(`SELECT * FROM customers WHERE email = $1`, [email]);
   },
 
   /**
@@ -27,8 +27,8 @@ const invoiceService = {
    * @param {"created"|"complete"|"failed"} status invoice request status
    * @returns query result
    */
-  logInvoiceRequestToDB(invoiceData, status = "created") {
-    return DAO.query(
+  async logInvoiceRequestToDB(invoiceData, status = "created") {
+    return await DAO.query(
       `INSERT INTO invoices (invoice_data, status) VALUES($1, $2) RETURNING *`,
       [JSON.stringify(invoiceData), status]
     );
@@ -39,8 +39,8 @@ const invoiceService = {
    * @param {Number} id invoice id
    * @param {"created"|"complete"|"failed"} status invoice request status
    */
-  updateInvoiceStatus(id, status) {
-    return DAO.query(`UPDATE invoices SET status = $1 WHERE id = $2`, [
+  async updateInvoiceStatus(id, status) {
+    return await DAO.query(`UPDATE invoices SET status = $1 WHERE id = $2`, [
       status,
       id,
     ]);
