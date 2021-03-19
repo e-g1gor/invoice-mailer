@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: on-failure
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+
+  invoice-mailer:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    build:
+      context: ./
+      dockerfile: ./docker/node-server/Dockerfile
+    container_name: invoice-mailer
+    restart: on-failure
+    environment:
+      NODE_ENV: production
+      PORT: 80
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: changeme
+    ports:
+      - 3000:80
