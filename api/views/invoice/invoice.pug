@@ -1,0 +1,176 @@
+-
+  var summary = invoiceData.summary = {};
+  summary.subtotal = invoiceData.services.reduce(
+      (rez, service) => rez += Number(service.price),
+      0
+    );
+  summary.taxtotal = Number(summary.subtotal * invoiceData.tax);
+  summary.total = Number(summary.subtotal + summary.taxtotal);
+
+<!DOCTYPE html>
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Brick and Willow Design | Invoice
+    style(type='text/css').
+      * {
+        font-family: inherit;
+        font-size: inherit;
+      }
+      a {
+        text-decoration: none;
+        cursor: pointer;
+        color: inherit;
+      }
+      h1 {
+        font-weight: normal;
+        font-size: 18px;
+      }
+      html, body {
+        font-family: Roboto, Arial;
+        font-size: 14px;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+      .root > header, section, footer {
+        padding: 0 50px;
+        display: flex;
+        flex-direction: column;
+      }
+      .linebreak {
+        width: 100%;
+        border-color: #FFF;
+      }
+      .logo {
+        justify-content: center;
+        color: white; 
+        height: 140px;
+        background-color: #536476;
+        align-items: center;
+      }
+      .logo_image {
+        width: 70px;
+        height: 70px;
+      }
+      .summary {    
+        margin-top: 30px;      
+        align-items: center; 
+      }
+      .summary_title {
+        margin: 0;
+        font-size: 18px;
+      }
+      .summary_paybutton {
+        color: white;
+        font-weight: bold;
+        background-color: #536476;
+        width: 250px;
+        text-align: center;
+        padding: 12px 0px;
+        border-radius: 4px;
+      }
+      .detalization > p {
+        margin: 5px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      .detalization_total {
+        font-size: 18px;
+      }
+      .footer {
+        margin-top: 20px;
+        padding: 20px 0;
+        align-items: center;  
+        border-top: 2px #DDD solid;
+        background-color: #EEEEEE;
+      }
+      .footer > p {
+        text-align: center;
+      }
+  body.root
+    header.logo
+      img.logo_image(src=`data:image/webp;base64,${img.logo}` alt="Logo")
+      h1 Brick and Willow Design
+
+    section.summary
+      -
+        let dateFormat = {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        };
+      p.summary_title New Invoice
+      p.summary_info.
+        $#{Number(invoiceData.summary.total.toFixed(2))}
+        due on 
+        #{invoiceData.dueDate.toLocaleDateString('en-us', dateFormat)}
+      a.summary_paybutton(href='#') Pay Invoice
+      p
+      hr.linebreak
+
+    section.invoice
+      p
+        b Invoice ##{invoiceData.id}
+        br
+        -
+          dateFormat = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          };
+        span=invoiceData.dueDate.toLocaleDateString('en-us', dateFormat)
+      hr.linebreak
+      p 
+        b Customer
+        br
+        span=invoiceData.customerFullName
+        br
+        span=invoiceData.customerEmail
+        if invoiceData.company
+          br
+          b Company
+          br
+          span=invoiceData.company
+      hr.linebreak
+      p.
+        The invoice is for work completed by Brick and Willow Design,
+        with the final product delivered on #{invoiceData.completeDate.toLocaleDateString('en-us', dateFormat)}.
+      hr.linebreak
+      p It was pleasure to work with you and your team. Please let me know if you have any questions and we hope you will keep us in mind for future freelance projects. Thank you!
+      hr.linebreak
+    
+    section.detalization
+      each service in invoiceData.services
+        p.detalization_item
+          b=service.description
+          b $#{Number(service.price).toFixed(2)}
+      hr.linebreak
+      p.detalization_subtotal
+        p
+          span Subtotal
+          span $#{Number(summary.subtotal).toFixed(2)}
+        p
+          span Tax
+          span $#{Number(summary.taxtotal).toFixed(2)}
+      hr.linebreak
+      p.detalization_total
+        b Total Due
+        b $#{Number(summary.total).toFixed(2)}
+
+    footer.footer
+      p
+        b Brick and Willow Design
+        br
+        span 10 Main Street, San Francisco, CA 94105
+        br
+        span 415-555-4721
+      p
+        b
+          a(href='#') Security
+          span &nbsp;|&nbsp;
+          a(href='#') Privacy
+        br
+        span C 2018 Square, Inc.
+      img.footer_image(src=`data:image/webp;base64,${img.footer}` alt="Logo")   
