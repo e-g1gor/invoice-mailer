@@ -1,4 +1,4 @@
-FROM buildkite/puppeteer:7.1.0
+FROM node:15-buster
 
 RUN mkdir -p /usr/webapp
 

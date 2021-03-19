@@ -1,8 +1,9 @@
 version: "3"
 
 services:
-
   pg-admin:
+    depends_on:
+      - "postgres"
     image: dpage/pgadmin4:5.0
     container_name: pg-admin
     environment:
@@ -15,6 +16,11 @@ services:
     image: postgres
     container_name: postgres
     restart: on-failure
+    healthcheck:
+      test: pg_isready -U myuser -d db_prod
+      interval: 10s
+      timeout: 3s
+      retries: 3
     environment:
       # POSTGRES_USER: postgres
       POSTGRES_PASSWORD: changeme
@@ -23,6 +29,8 @@ services:
       # - ./volumes/postgres/data:/var/lib/postgresql/data
 
   invoice-mailer:
+    depends_on:
+      - "postgres"
     build:
       context: ./
       dockerfile: ./docker/node-server/Dockerfile
@@ -48,3 +56,16 @@ services:
       - ./volumes/data:/usr/webapp/data
     ports:
       - 3000:80
+
+  swagger-ui:
+    depends_on:
+      - "invoice-mailer"
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    restart: on-failure
+    environment:
+      SWAGGER_JSON: /swagger.json
+    ports:
+      - 3002:8080
+    volumes:
+      - ./api/swagger/swagger.json:/swagger.json:rw
