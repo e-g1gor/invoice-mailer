@@ -1,5 +1,8 @@
 FROM node:15-buster
 
+RUN apt-get update
+RUN apt-get install -y chromium
+
 RUN mkdir -p /usr/webapp
 
 WORKDIR /usr/webapp
@@ -9,7 +12,6 @@ RUN cp ./docker/node-server/entrypoint.sh ./
 
 RUN rm -rf ./docker
 
-RUN chmod +x ./bin/www
 RUN chown -cR node .
 USER node
 
