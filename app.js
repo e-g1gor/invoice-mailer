@@ -1,19 +1,27 @@
-var createError = require('http-errors');
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require("http-errors");
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 
-var invoiceRouter = require('./api/routes/invoice');
+const invoiceRouter = require("./api/routes/invoice");
 
-var app = express();
+const app = express();
 
+console.log("Server started.");
 
-app.use(logger('dev'));
+if (process.env.NODE_ENV === "development") {
+  const cors = require("cors");
+  app.use(cors());
+  console.log("CORS enabled for debug purposes.");
+}
+
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/invoice', invoiceRouter);
+// Routes
+app.use("/invoice", invoiceRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -24,11 +32,11 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // send error data
   res.status(err.status || 500);
-  res.send({ error: err })
+  res.send({ error: err });
 });
 
 module.exports = app;

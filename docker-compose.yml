@@ -48,6 +48,7 @@ services:
       # Cache node_modules for development, to prevent redownloading dependencies
       - ./volumes/node-server/.npm:/home/node/.npm:rw
       # Mount sources for development, to avoid container recreation
+      - ./app.js:/usr/webapp/app.js
       - ./api:/usr/webapp/api
       - ./config:/usr/webapp/config
       - ./bin:/usr/webapp/bin
