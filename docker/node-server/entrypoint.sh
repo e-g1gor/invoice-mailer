@@ -9,4 +9,4 @@ PUPPETEER_EXECUTABLE_PATH=$(which chromium)
 
 echo "Starting node server."
 
-node ./bin/www
+node ./bin/www.js

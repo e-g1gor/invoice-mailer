@@ -1,11 +1,11 @@
-"use strict";
+"use strict"
 
-const invoiceService = require("../services/invoice");
-const nodemailer = require("nodemailer");
-const mg = require("nodemailer-mailgun-transport");
-const mailConfig = require("../../config/mail");
-const { mailgunAuth, myEmail } = mailConfig;
-const nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth));
+import invoiceService from "../services/invoice.js"
+import nodemailer from "nodemailer"
+import mg from "nodemailer-mailgun-transport"
+import mailConfig from "../../config/mail.js"
+const { mailgunAuth, myEmail } = mailConfig
+const nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth))
 
 /**
  * Request validation
@@ -17,15 +17,15 @@ const validate = {
       "dueDate",
       "completeDate",
       "customerEmail",
-      "services",
-    ].every((field) => Object.keys(data).includes(field));
+      "services"
+    ].every((field) => Object.keys(data).includes(field))
     if (!missingFieldsTest)
       return {
         status: 400,
-        message: "Malformed request: " + JSON.stringify(data),
-      };
-  },
-};
+        message: "Malformed request: " + JSON.stringify(data)
+      }
+  }
+}
 
 class invoiceController {
   /**
@@ -36,25 +36,25 @@ class invoiceController {
   static async requestInvoice(req, res) {
     // TODO: use some task sheduling
     try {
-      const bodyCheck = validate.requestInvoiceBody(req.body);
+      const bodyCheck = validate.requestInvoiceBody(req.body)
       if (bodyCheck)
-        return res.status(bodyCheck.status).send(bodyCheck.message);
-      const invoiceData = req.body; // Create log record
+        return res.status(bodyCheck.status).send(bodyCheck.message)
+      const invoiceData = req.body // Create log record
       const newInvoiceQuery = await invoiceService.logInvoiceRequestToDB(
         invoiceData
-      );
-      const newInvoiceRecord = newInvoiceQuery.rows[0];
+      )
+      const newInvoiceRecord = newInvoiceQuery.rows[0]
       // Load customer data
       const customerDataQuery = await invoiceService.getCustomerByEmail(
         invoiceData.customerEmail
-      );
-      const customerData = customerDataQuery.rows[0];
+      )
+      const customerData = customerDataQuery.rows[0]
       if (customerDataQuery.rows.length === 0)
         return res
           .status(404)
           .send(
             `Can't find customer with email: <${invoiceData.customerEmail}>`
-          );
+          )
       // Format invoice data
       Object.assign(invoiceData, {
         id: newInvoiceRecord.id,
@@ -62,15 +62,15 @@ class invoiceController {
         company: customerData.company,
         completeDate: new Date(invoiceData.completeDate),
         dueDate: new Date(invoiceData.dueDate),
-        tax: invoiceData.tax || 0,
-      });
+        tax: invoiceData.tax || 0
+      })
       // Render html
       const html = await invoiceService.RenderPugTemplate(
         "./api/views/invoice",
         invoiceData
-      );
+      )
       // Render pdf
-      const pdfBuffer = await invoiceService.renderHTMLToPDF(html);
+      const pdfBuffer = await invoiceService.renderHTMLToPDF(html)
       // Send invoice to customer
       let mailContent = {
         from: myEmail,
@@ -83,28 +83,28 @@ class invoiceController {
           {
             cid: "invoice.pdf",
             content: pdfBuffer.toString("base64"),
-            encoding: "base64",
-          },
-        ],
-      };
-      const mailStatus = await nodemailerMailgun.sendMail(mailContent);
+            encoding: "base64"
+          }
+        ]
+      }
+      const mailStatus = await nodemailerMailgun.sendMail(mailContent)
       // Update invoice log record
-      await invoiceService.updateInvoiceStatus(invoiceData.id, "complete");
+      await invoiceService.updateInvoiceStatus(invoiceData.id, "complete")
       res.send(
         `OK. Invoice #${newInvoiceRecord.id} sent to ${invoiceData.customerEmail}`
-      );
+      )
     } catch (err) {
-      let error;
+      let error
       try {
-        error = JSON.stringify(err);
+        error = JSON.stringify(err)
       } catch (_) {
-        error = "No error data available.";
+        error = "No error data available."
       }
-      res.status(500).send();
+      res.status(500).send()
       // Update invoice log record (or delete?)
-      await invoiceService.updateInvoiceStatus({ error, req }, "failed");
+      await invoiceService.updateInvoiceStatus({ error, req }, "failed")
     }
   }
 }
 
-module.exports = invoiceController;
+export default invoiceController
