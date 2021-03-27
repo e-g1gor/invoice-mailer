@@ -8,14 +8,14 @@ const invoiceData = {
   services: [
     {
       description: "Email template design",
-      price: "15.5",
+      price: "15.5"
     },
 
     {
       description: "Email template development",
-      price: "84",
-    },
-  ],
-};
+      price: "84"
+    }
+  ]
+}
 
-module.exports = invoiceData;
+module.exports = invoiceData

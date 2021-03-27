@@ -1,12 +1,12 @@
-"use strict";
+"use strict"
 
-const fs = require("fs-extra");
-const path = require("path");
-const glob = require("glob");
-const pug = require("pug");
-const htmlToPdf = require("html-pdf-node");
+import fs from "fs-extra"
+import path from "path"
+import glob from "glob"
+import pug from "pug"
+import htmlToPdf from "html-pdf-node"
 
-const DAO = require("./dao");
+import DAO from "./dao.js"
 
 /**
  * Invoice service
@@ -18,7 +18,7 @@ const invoiceService = {
    * @returns query result
    */
   async getCustomerByEmail(email) {
-    return await DAO.query(`SELECT * FROM customers WHERE email = $1`, [email]);
+    return await DAO.query(`SELECT * FROM customers WHERE email = $1`, [email])
   },
 
   /**
@@ -31,7 +31,7 @@ const invoiceService = {
     return await DAO.query(
       `INSERT INTO invoices (invoice_data, status) VALUES($1, $2) RETURNING *`,
       [JSON.stringify(invoiceData), status]
-    );
+    )
   },
 
   /**
@@ -42,8 +42,8 @@ const invoiceService = {
   async updateInvoiceStatus(id, status) {
     return await DAO.query(`UPDATE invoices SET status = $1 WHERE id = $2`, [
       status,
-      id,
-    ]);
+      id
+    ])
   },
 
   /**
@@ -53,16 +53,16 @@ const invoiceService = {
    */
   async RenderPugTemplate(invoiceTemplateDir, invoiceData) {
     // Load all images from template folder
-    const img = {};
+    const img = {}
     glob.sync(invoiceTemplateDir + "/*.webp").map((image) => {
-      const name = path.basename(image, path.extname(image));
-      img[name] = Buffer.from(fs.readFileSync(image)).toString("base64");
-    });
+      const name = path.basename(image, path.extname(image))
+      img[name] = Buffer.from(fs.readFileSync(image)).toString("base64")
+    })
     // Render HTML
     return pug.renderFile(invoiceTemplateDir + "/invoice.pug", {
       img,
-      invoiceData,
-    });
+      invoiceData
+    })
   },
 
   /**
@@ -76,13 +76,13 @@ const invoiceService = {
     const renderOptions = Object.assign(
       {
         printBackground: true,
-        width: "600px",
+        width: "600px"
       },
       options
-    );
+    )
     // Render pdf
-    return await htmlToPdf.generatePdf({ content: html }, renderOptions);
-  },
-};
+    return await htmlToPdf.generatePdf({ content: html }, renderOptions)
+  }
+}
 
-module.exports = invoiceService;
+export default invoiceService
