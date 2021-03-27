@@ -30,6 +30,7 @@
     "@types/nodemailer": "~6.4.1",
     "@types/nodemailer-mailgun-transport": "~1.4.2",
     "@types/pg": "~7.14.11",
-    "@types/pug": "~2.0.4"
+    "@types/pug": "~2.0.4",
+    "eslint": "^7.23.0"
   }
 }
