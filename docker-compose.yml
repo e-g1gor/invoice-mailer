@@ -50,6 +50,8 @@ services:
         condition: service_healthy
       pdf-renderer:
         condition: service_started
+      mail-sender:
+        condition: service_started
     build:
       context: ./
       dockerfile: ./docker/node-server/Dockerfile
@@ -79,6 +81,9 @@ services:
       context: ./
       dockerfile: ./docker/pdf-renderer/Dockerfile
     container_name: pdf-renderer
+    depends_on:
+      redis:
+        condition: service_healthy
     environment:
       REDIS_HOST: redis
     volumes:
@@ -87,6 +92,24 @@ services:
       - ./config:/usr/webapp/config
       - ./pdf-renderer/package.json:/usr/webapp/package.json:ro
       - ./docker/pdf-renderer/entrypoint.sh:/usr/webapp/entrypoint.sh
+
+
+  mail-sender:
+    build:
+      context: ./
+      dockerfile: ./docker/mail-sender/Dockerfile
+    container_name: mail-sender
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+    volumes:
+      # Mount sources for development, to avoid container recreation
+      - ./mail-sender:/usr/webapp/mail-sender
+      - ./config:/usr/webapp/config
+      - ./mail-sender/package.json:/usr/webapp/package.json:ro
+      - ./docker/mail-sender/entrypoint.sh:/usr/webapp/entrypoint.sh
 
   swagger-ui:
     depends_on:

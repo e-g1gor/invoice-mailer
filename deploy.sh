@@ -10,4 +10,4 @@ export CURRENT_UID=$(id -u):$(id -g)
 
 docker-compose stop
 docker-compose up -d
-docker-compose logs -f node-server pdf-renderer
+docker-compose logs -f node-server pdf-renderer mail-sender

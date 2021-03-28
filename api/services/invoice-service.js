@@ -7,10 +7,11 @@ import pug from "pug"
 
 import DAO from "./dao.js"
 
-import { PdfRenderQueue as pdfQueue, pdfQueueEvents} from "../../config/bullmq-connection.js"
-
-// TODO: separate workers to service
-import { mailQueueEvents } from "../../mail-sender/mail-sender.js"
+import {
+  PdfRenderQueue as pdfQueue,
+  pdfQueueEvents,
+  mailQueueEvents
+} from "../../config/bullmq-connection.js"
 
 /**
  * Request validation
@@ -111,12 +112,12 @@ mailQueueEvents.on("completed", async (job) => {
 })
 // TODO: process failures
 pdfQueueEvents.on("failed", async (job) => {
-  // console.log(job)
-  // const {id} = job.data
-  // invoiceService.updateInvoiceStatus(id, "failed")
+  console.log(job.failedReason)
+  const {id} = job.data.invoiceData.id
+  invoiceService.updateInvoiceStatus(id, "failed")
 })
 mailQueueEvents.on("failed", async (job) => {
-  console.log(job)
-  // const {id} = job.data
-  // invoiceService.updateInvoiceStatus(id, "failed")
+  console.log(job.failedReason)
+  const {id} = job.data.invoiceData.id
+  invoiceService.updateInvoiceStatus(id, "failed")
 })

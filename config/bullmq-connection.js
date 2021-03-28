@@ -19,3 +19,8 @@ export const pdfQueueEvents = new QueueEvents(
   RENDER_PDF_QUEUE_NAME,
   REDIS_CONNECTION_OPTION
 )
+
+export const mailQueueEvents = new QueueEvents(
+  MAIL_SEND_QUEUE_NAME,
+  REDIS_CONNECTION_OPTION
+)
