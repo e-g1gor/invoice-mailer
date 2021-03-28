@@ -1,6 +1,6 @@
 "use strict"
 
-import { invoiceService, invoiceValidate } from "../services/invoice.js"
+import { invoiceService, invoiceValidate } from "../services/invoice-service.js"
 
 
 export class invoiceController {

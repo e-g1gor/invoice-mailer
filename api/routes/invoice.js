@@ -1,7 +1,7 @@
 'use strict'
 
 import express from "express"
-import invoiceController from "../controllers/invoice.js"
+import invoiceController from "../controllers/invoice-controller.js"
 
 export const router = express.Router()
 
