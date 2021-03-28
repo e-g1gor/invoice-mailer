@@ -1,0 +1,17 @@
+{
+  "name": "mail-sender",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "mail-sender.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bullmq": "1.15.1",
+    "nodemailer": "6.5.0",
+    "nodemailer-mailgun-transport": "2.0.2"
+  }
+}

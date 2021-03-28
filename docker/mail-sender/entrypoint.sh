@@ -5,6 +5,6 @@ npm install
 
 echo "NODE_ENV: $NODE_ENV"
 
-echo "Starting node server."
+echo "Starting mail sending worker."
 
-node ./bin/www.js
+node ./mail-sender/mail-sender.js

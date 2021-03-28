@@ -1,8 +1,11 @@
-var express = require("express");
-var router = express.Router();
-const invoiceController = require("../controllers/invoice");
+'use strict'
+
+import express from "express"
+import invoiceController from "../controllers/invoice-controller.js"
+
+export const router = express.Router()
 
 /* Generate invoice */
-router.post("/", invoiceController.requestInvoice);
+router.post("/", invoiceController.requestInvoice)
 
-module.exports = router;
+export default router

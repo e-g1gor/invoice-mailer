@@ -1,11 +1,25 @@
 version: "3"
 
 services:
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: on-failure
+    healthcheck:
+      test: /bin/bash /docker-healthcheck
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - ./docker/redis/docker-healthcheck:/docker-healthcheck
+
   pg-admin:
     depends_on:
       - "postgres"
     image: dpage/pgadmin4:5.0
     container_name: pg-admin
+    restart: on-failure
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: changeme
@@ -28,17 +42,22 @@ services:
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
       # - ./volumes/postgres/data:/var/lib/postgresql/data
 
-  invoice-mailer:
+  node-server:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      pdf-renderer:
+        condition: service_started
+      mail-sender:
+        condition: service_started
     build:
       context: ./
       dockerfile: ./docker/node-server/Dockerfile
-    container_name: invoice-mailer
-    restart: on-failure
+    container_name: node-server
     environment:
-      NODE_ENV: development
+      REDIS_HOST: redis
       DEBUG: invoice-mailer:*
       PORT: 80
       PGHOST: postgres
@@ -46,22 +65,56 @@ services:
       PGUSER: postgres
       PGPASSWORD: changeme
     volumes:
-      # Cache node_modules for development, to prevent redownloading dependencies
-      - ./volumes/node-server/.npm:/home/node/.npm:rw
       # Mount sources for development, to avoid container recreation
       - ./app.js:/usr/webapp/app.js
       - ./api:/usr/webapp/api
+      - ./mail-sender:/usr/webapp/mail-sender
       - ./config:/usr/webapp/config
       - ./bin:/usr/webapp/bin
       - ./package.json:/usr/webapp/package.json:ro
       - ./docker/node-server/entrypoint.sh:/usr/webapp/entrypoint.sh
-      - ./volumes/data:/usr/webapp/data
     ports:
       - 3000:80
 
+  pdf-renderer:
+    build:
+      context: ./
+      dockerfile: ./docker/pdf-renderer/Dockerfile
+    container_name: pdf-renderer
+    init: true
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+    volumes:
+      # Mount sources for development, to avoid container recreation
+      - ./pdf-renderer:/usr/webapp/pdf-renderer
+      - ./config:/usr/webapp/config
+      - ./pdf-renderer/package.json:/usr/webapp/package.json:ro
+      - ./docker/pdf-renderer/entrypoint.sh:/usr/webapp/entrypoint.sh
+
+
+  mail-sender:
+    build:
+      context: ./
+      dockerfile: ./docker/mail-sender/Dockerfile
+    container_name: mail-sender
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+    volumes:
+      # Mount sources for development, to avoid container recreation
+      - ./mail-sender:/usr/webapp/mail-sender
+      - ./config:/usr/webapp/config
+      - ./mail-sender/package.json:/usr/webapp/package.json:ro
+      - ./docker/mail-sender/entrypoint.sh:/usr/webapp/entrypoint.sh
+
   swagger-ui:
     depends_on:
-      - "invoice-mailer"
+      - "node-server"
     image: swaggerapi/swagger-ui
     container_name: swagger-ui
     restart: on-failure

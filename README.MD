@@ -53,15 +53,17 @@ To acces from internet, firewall must be configured for this ports.
 
 ----
 
+Delpoyment scripts uses Docker commands. If you added `docker` group to your current user, commands below should work as is. Otherwise sudo is required.
+
 To deploy in production mode, run bash script: `./prod-deploy.sh`
 
 To deploy in development mode, run bash script: `./deploy.sh`
 
 ----
 
-To shut down services, run `sudo docker-compose stop`
+To shut down services, run `docker-compose stop`
 
-To remove services, run `sudo docker-compose down`
+To remove services, run `docker-compose down`
 
 ## Usage of pgAdmin
 
@@ -102,4 +104,4 @@ In short, you need:
 In details:
 
 1. Edit file `./docker/postgres/init/2_insert-mock.sql` . There is already one insert query for customer as example.
-2. (Optional) Run `sudo docker-compose stop postgres && sudo docker-compose rm -f postgres && sudo docker-compose up -d postgres && sudo docker-compose logs -f postgres` to recreate old postgres container.
+2. (Optional) Run `docker-compose stop postgres && docker-compose rm -f postgres && docker-compose up -d postgres && docker-compose logs -f postgres` to recreate old postgres container.
