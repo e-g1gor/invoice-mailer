@@ -4,14 +4,39 @@ import fs from "fs-extra"
 import path from "path"
 import glob from "glob"
 import pug from "pug"
-import htmlToPdf from "html-pdf-node"
 
 import DAO from "./dao.js"
+
+import { PdfRenderQueue as pdfQueue } from "../../config/bullmq-connection.js"
+
+// TODO: separate workers to service
+import { pdfQueueEvents } from "../../pdf-renderer/pdf-renderer.js"
+import { mailQueueEvents } from "../../mail-sender/mail-sender.js"
+
+/**
+ * Request validation
+ */
+export const invoiceValidate = {
+  requestInvoiceBody(data) {
+    // Verify fields
+    const missingFieldsTest = [
+      "dueDate",
+      "completeDate",
+      "customerEmail",
+      "services"
+    ].every((field) => Object.keys(data).includes(field))
+    if (!missingFieldsTest)
+      return {
+        status: 400,
+        message: "Malformed request: " + JSON.stringify(data)
+      }
+  }
+}
 
 /**
  * Invoice service
  */
-const invoiceService = {
+export const invoiceService = {
   /**
    * Load customer data by email
    * @param {String} email customer email
@@ -66,23 +91,33 @@ const invoiceService = {
   },
 
   /**
-   * Render pdf
-   * @param {String} html generated invoice html
-   * @param {*} options pdf render options
-   * @returns buffer with rendered pdf
+   * Add invoice data to queue for rendering and sending
+   * @param {*} invoiceData
    */
-  async renderHTMLToPDF(html, options) {
-    // Merge default and provided options
-    const renderOptions = Object.assign(
-      {
-        printBackground: true,
-        width: "600px"
-      },
-      options
+  async sheduleInvoiceProcessing(invoiceData) {
+    // Render html
+    const html = await this.RenderPugTemplate(
+      "./api/views/invoice",
+      invoiceData
     )
-    // Render pdf
-    return await htmlToPdf.generatePdf({ content: html }, renderOptions)
+    // Shedule pdf rendering
+    pdfQueue.add("render", { invoiceData, html })
   }
 }
 
-export default invoiceService
+// Log invoice processing results
+mailQueueEvents.on("completed", async (job) => {
+  const { id } = job.returnvalue
+  invoiceService.updateInvoiceStatus(id, "complete")
+})
+// TODO: process failures
+pdfQueueEvents.on("failed", async (job) => {
+  // console.log(job)
+  // const {id} = job.data
+  // invoiceService.updateInvoiceStatus(id, "failed")
+})
+mailQueueEvents.on("failed", async (job) => {
+  console.log(job)
+  // const {id} = job.data
+  // invoiceService.updateInvoiceStatus(id, "failed")
+})
