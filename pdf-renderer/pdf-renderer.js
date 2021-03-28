@@ -12,7 +12,7 @@ import {
 } from "../config/bullmq-connection.js"
 
 // PDF rendering worker
-export const pdfRenderWorker = new Worker(
+const pdfRenderWorker = new Worker(
   RENDER_PDF_QUEUE_NAME,
   async (job) => {
     const { invoiceData, html, options } = job.data
@@ -38,6 +38,7 @@ export const pdfRenderWorker = new Worker(
 
 // Configure related BullMQ jobs
 pdfQueueEvents.on("completed", async (job) => {
+  console.log("PDF rendered successfully")
   const { id, customerEmail, pdf, html } = job.returnvalue
   const mailContent = {
     from: myEmail,
@@ -65,4 +66,9 @@ pdfQueueEvents.on("completed", async (job) => {
       }
     }
   )
+})
+
+pdfQueueEvents.on("failed", (job) => {
+  console.log("PDF render failed")
+  console.log(job.failedReason)
 })
