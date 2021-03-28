@@ -1,6 +1,6 @@
 'use strict'
 
-import {Queue} from 'bullmq'
+import {Queue, QueueEvents} from 'bullmq'
 
 // BullMQ configuration
 export const REDIS_CONNECTION_OPTION = {
@@ -14,3 +14,8 @@ export const MAIL_SEND_QUEUE_NAME = "SendMail"
 
 export const PdfRenderQueue = new Queue(RENDER_PDF_QUEUE_NAME, REDIS_CONNECTION_OPTION)
 export const MailSendQueue = new Queue(MAIL_SEND_QUEUE_NAME, REDIS_CONNECTION_OPTION)
+
+export const pdfQueueEvents = new QueueEvents(
+  RENDER_PDF_QUEUE_NAME,
+  REDIS_CONNECTION_OPTION
+)
