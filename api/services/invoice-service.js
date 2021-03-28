@@ -4,27 +4,14 @@ import fs from "fs-extra"
 import path from "path"
 import glob from "glob"
 import pug from "pug"
-import { Queue } from "bullmq"
-import nodemailer from "nodemailer"
-import mg from "nodemailer-mailgun-transport"
 
 import DAO from "./dao.js"
 
-import mailConfig from "../../config/mail.js"
-import {
-  REDIS_CONNECTION_OPTION,
-  RENDER_PDF_QUEUE_NAME
-} from "../../config/bullmq-connection.js"
+import { PdfRenderQueue as pdfQueue } from "../../config/bullmq-connection.js"
 
-// TODO: separate worker to service
+// TODO: separate workers to service
 import { pdfQueueEvents } from "../../pdf-renderer/pdf-renderer.js"
-
-// Configure mailer
-const { mailgunAuth, myEmail } = mailConfig
-const nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth))
-
-// Configure BullMQ
-const pdfQueue = new Queue(RENDER_PDF_QUEUE_NAME, REDIS_CONNECTION_OPTION)
+import { mailQueueEvents } from "../../mail-sender/mail-sender.js"
 
 /**
  * Request validation
@@ -113,36 +100,24 @@ export const invoiceService = {
       "./api/views/invoice",
       invoiceData
     )
-
-    // Render pdf
+    // Shedule pdf rendering
     pdfQueue.add("render", { invoiceData, html })
   }
 }
 
-// Configure related BullMQ jobs
-// TODO: separate to worker
-pdfQueueEvents.on("completed", async (job) => {
-  const { invoiceData, pdfBuffer, html } = job.returnvalue
-  const mailContent = {
-    from: myEmail,
-    to: invoiceData.customerEmail,
-    subject: `(Test email. No opt-out required) Invoice #${invoiceData.id} from Brick and Willow Design`,
-    "h:Reply-To": myEmail,
-    html,
-    text: "See your invoice in attachment.",
-    attachments: [
-      {
-        cid: "invoice.pdf",
-        content: pdfBuffer.toString("base64"),
-        encoding: "base64"
-      }
-    ]
-  }
-  try {
-    await nodemailerMailgun.sendMail(mailContent)
-    invoiceService.updateInvoiceStatus(invoiceData.id, "complete")
-  } catch (err) {
-    invoiceService.updateInvoiceStatus(invoiceData.id, "failed")
-    console.log("Mail sending error: " + err)
-  }
+// Log invoice processing results
+mailQueueEvents.on("completed", async (job) => {
+  const { id } = job.returnvalue
+  invoiceService.updateInvoiceStatus(id, "complete")
+})
+// TODO: process failures
+pdfQueueEvents.on("failed", async (job) => {
+  // console.log(job)
+  // const {id} = job.data
+  // invoiceService.updateInvoiceStatus(id, "failed")
+})
+mailQueueEvents.on("failed", async (job) => {
+  console.log(job)
+  // const {id} = job.data
+  // invoiceService.updateInvoiceStatus(id, "failed")
 })

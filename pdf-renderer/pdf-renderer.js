@@ -2,10 +2,14 @@
 
 import htmlToPdf from "html-pdf-node"
 import { Worker, QueueEvents } from "bullmq"
+
+import { myEmail } from "../config/mail.js"
 import {
   REDIS_CONNECTION_OPTION,
-  RENDER_PDF_QUEUE_NAME
+  RENDER_PDF_QUEUE_NAME,
+  MailSendQueue
 } from "../config/bullmq-connection.js"
+
 // TODO: remove after worker separation to service
 export const pdfQueueEvents = new QueueEvents(
   RENDER_PDF_QUEUE_NAME,
@@ -26,11 +30,44 @@ export const pdfRenderWorker = new Worker(
       options
     )
     // Render pdf
-    const pdfBuffer = await htmlToPdf.generatePdf(
-      { content: html },
-      renderOptions
-    )
-    return { invoiceData, pdfBuffer, html }
+    const pdf = await htmlToPdf.generatePdf({ content: html }, renderOptions)
+    return {
+      id: invoiceData.id,
+      customerEmail: invoiceData.customerEmail,
+      pdf: { data: pdf.toString("base64"), encoding: "base64" },
+      html
+    }
   },
   REDIS_CONNECTION_OPTION
 )
+
+// Configure related BullMQ jobs
+pdfQueueEvents.on("completed", async (job) => {
+  const { id, customerEmail, pdf, html } = job.returnvalue
+  const mailContent = {
+    from: myEmail,
+    to: customerEmail,
+    subject: `(Test email. No opt-out required) Invoice #${id} from Brick and Willow Design`,
+    "h:Reply-To": myEmail,
+    html,
+    text: "See your invoice in attachment.",
+    attachments: [
+      {
+        cid: `invoice_${id}.pdf`,
+        content: pdf.data,
+        encoding: pdf.encoding
+      }
+    ]
+  }
+  MailSendQueue.add(
+    "SendMail",
+    { id, mailContent },
+    {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 500
+      }
+    }
+  )
+})

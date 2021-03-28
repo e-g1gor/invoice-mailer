@@ -69,6 +69,7 @@ services:
       - ./app.js:/usr/webapp/app.js
       - ./api:/usr/webapp/api
       - ./pdf-renderer:/usr/webapp/pdf-renderer
+      - ./mail-sender:/usr/webapp/mail-sender
       - ./config:/usr/webapp/config
       - ./bin:/usr/webapp/bin
       - ./package.json:/usr/webapp/package.json:ro
