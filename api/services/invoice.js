@@ -4,14 +4,52 @@ import fs from "fs-extra"
 import path from "path"
 import glob from "glob"
 import pug from "pug"
-import htmlToPdf from "html-pdf-node"
+import { Queue } from "bullmq"
+import nodemailer from "nodemailer"
+import mg from "nodemailer-mailgun-transport"
 
 import DAO from "./dao.js"
+
+import mailConfig from "../../config/mail.js"
+import {
+  REDIS_CONNECTION_OPTION,
+  RENDER_PDF_QUEUE_NAME
+} from "../../config/bullmq-connection.js"
+
+// TODO: separate worker to service
+import { pdfQueueEvents } from "../../pdf-renderer/pdf-renderer.js"
+
+// Configure mailer
+const { mailgunAuth, myEmail } = mailConfig
+const nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth))
+
+// Configure BullMQ
+const pdfQueue = new Queue(RENDER_PDF_QUEUE_NAME, REDIS_CONNECTION_OPTION)
+
+/**
+ * Request validation
+ */
+export const invoiceValidate = {
+  requestInvoiceBody(data) {
+    // Verify fields
+    const missingFieldsTest = [
+      "dueDate",
+      "completeDate",
+      "customerEmail",
+      "services"
+    ].every((field) => Object.keys(data).includes(field))
+    if (!missingFieldsTest)
+      return {
+        status: 400,
+        message: "Malformed request: " + JSON.stringify(data)
+      }
+  }
+}
 
 /**
  * Invoice service
  */
-const invoiceService = {
+export const invoiceService = {
   /**
    * Load customer data by email
    * @param {String} email customer email
@@ -66,23 +104,45 @@ const invoiceService = {
   },
 
   /**
-   * Render pdf
-   * @param {String} html generated invoice html
-   * @param {*} options pdf render options
-   * @returns buffer with rendered pdf
+   * Add invoice data to queue for rendering and sending
+   * @param {*} invoiceData
    */
-  async renderHTMLToPDF(html, options) {
-    // Merge default and provided options
-    const renderOptions = Object.assign(
-      {
-        printBackground: true,
-        width: "600px"
-      },
-      options
+  async sheduleInvoiceProcessing(invoiceData) {
+    // Render html
+    const html = await this.RenderPugTemplate(
+      "./api/views/invoice",
+      invoiceData
     )
+
     // Render pdf
-    return await htmlToPdf.generatePdf({ content: html }, renderOptions)
+    pdfQueue.add("render", { invoiceData, html })
   }
 }
 
-export default invoiceService
+// Configure related BullMQ jobs
+// TODO: separate to worker
+pdfQueueEvents.on("completed", async (job) => {
+  const { invoiceData, pdfBuffer, html } = job.returnvalue
+  const mailContent = {
+    from: myEmail,
+    to: invoiceData.customerEmail,
+    subject: `(Test email. No opt-out required) Invoice #${invoiceData.id} from Brick and Willow Design`,
+    "h:Reply-To": myEmail,
+    html,
+    text: "See your invoice in attachment.",
+    attachments: [
+      {
+        cid: "invoice.pdf",
+        content: pdfBuffer.toString("base64"),
+        encoding: "base64"
+      }
+    ]
+  }
+  try {
+    await nodemailerMailgun.sendMail(mailContent)
+    invoiceService.updateInvoiceStatus(invoiceData.id, "complete")
+  } catch (err) {
+    invoiceService.updateInvoiceStatus(invoiceData.id, "failed")
+    console.log("Mail sending error: " + err)
+  }
+})

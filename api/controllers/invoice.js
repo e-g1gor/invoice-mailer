@@ -1,33 +1,9 @@
 "use strict"
 
-import invoiceService from "../services/invoice.js"
-import nodemailer from "nodemailer"
-import mg from "nodemailer-mailgun-transport"
-import mailConfig from "../../config/mail.js"
-const { mailgunAuth, myEmail } = mailConfig
-const nodemailerMailgun = nodemailer.createTransport(mg(mailgunAuth))
+import { invoiceService, invoiceValidate } from "../services/invoice.js"
 
-/**
- * Request validation
- */
-const validate = {
-  requestInvoiceBody(data) {
-    // Verify fields
-    const missingFieldsTest = [
-      "dueDate",
-      "completeDate",
-      "customerEmail",
-      "services"
-    ].every((field) => Object.keys(data).includes(field))
-    if (!missingFieldsTest)
-      return {
-        status: 400,
-        message: "Malformed request: " + JSON.stringify(data)
-      }
-  }
-}
 
-class invoiceController {
+export class invoiceController {
   /**
    * Create invoice with provided data and send pdf on customer email
    * @param {*} req
@@ -36,14 +12,16 @@ class invoiceController {
   static async requestInvoice(req, res) {
     // TODO: use some task sheduling
     try {
-      const bodyCheck = validate.requestInvoiceBody(req.body)
+      // Validate
+      const bodyCheck = invoiceValidate.requestInvoiceBody(req.body)
       if (bodyCheck)
         return res.status(bodyCheck.status).send(bodyCheck.message)
-      const invoiceData = req.body // Create log record
+      const invoiceData = req.body
+      // Create log record in db
       const newInvoiceQuery = await invoiceService.logInvoiceRequestToDB(
         invoiceData
       )
-      const newInvoiceRecord = newInvoiceQuery.rows[0]
+      const newInvoice = newInvoiceQuery.rows[0]
       // Load customer data
       const customerDataQuery = await invoiceService.getCustomerByEmail(
         invoiceData.customerEmail
@@ -57,41 +35,17 @@ class invoiceController {
           )
       // Format invoice data
       Object.assign(invoiceData, {
-        id: newInvoiceRecord.id,
+        id: newInvoice.id,
         customerFullName: customerData.firstname + " " + customerData.lastname,
         company: customerData.company,
         completeDate: new Date(invoiceData.completeDate),
         dueDate: new Date(invoiceData.dueDate),
         tax: invoiceData.tax || 0
       })
-      // Render html
-      const html = await invoiceService.RenderPugTemplate(
-        "./api/views/invoice",
-        invoiceData
-      )
-      // Render pdf
-      const pdfBuffer = await invoiceService.renderHTMLToPDF(html)
-      // Send invoice to customer
-      let mailContent = {
-        from: myEmail,
-        to: invoiceData.customerEmail,
-        subject: `(Test email. No opt-out required) Invoice #${newInvoiceRecord.id} from Brick and Willow Design`,
-        "h:Reply-To": myEmail,
-        html,
-        text: "See your invoice in attachment.",
-        attachments: [
-          {
-            cid: "invoice.pdf",
-            content: pdfBuffer.toString("base64"),
-            encoding: "base64"
-          }
-        ]
-      }
-      const mailStatus = await nodemailerMailgun.sendMail(mailContent)
-      // Update invoice log record
-      await invoiceService.updateInvoiceStatus(invoiceData.id, "complete")
+      // Shedule further invoice processing
+      invoiceService.sheduleInvoiceProcessing(invoiceData)
       res.send(
-        `OK. Invoice #${newInvoiceRecord.id} sent to ${invoiceData.customerEmail}`
+        `OK. Invoice #${newInvoice.id} is sheduled for rendering and sending.`
       )
     } catch (err) {
       let error
