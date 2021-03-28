@@ -1,7 +1,9 @@
 "use strict"
 
-import { invoiceService, invoiceValidate } from "../services/invoice-service.js"
-
+import {
+  invoiceService,
+  invoiceValidate
+} from "../services/invoice-service.js"
 
 export class invoiceController {
   /**
@@ -49,14 +51,12 @@ export class invoiceController {
       )
     } catch (err) {
       let error
-      try {
-        error = JSON.stringify(err)
-      } catch (_) {
-        error = "No error data available."
+      if (process.env.NODE_END === "production") {
+        error = "Error occured."
+      } else {
+        error = err
       }
-      res.status(500).send()
-      // Update invoice log record (or delete?)
-      await invoiceService.updateInvoiceStatus({ error, req }, "failed")
+      res.status(500).send(error)
     }
   }
 }

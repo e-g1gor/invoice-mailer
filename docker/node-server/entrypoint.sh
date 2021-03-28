@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#  Refresh dependencies
+#  Install dependencies on service restart
 npm install
 
-which chromium
+echo "Chromium installation path: $(which chromium)"
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 PUPPETEER_EXECUTABLE_PATH=$(which chromium)
 

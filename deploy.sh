@@ -1,4 +1,7 @@
 #!/bin/bash
 
-sudo docker-compose up -d
-sudo docker-compose logs --tail=0 --follow
+NODE_ENV=development
+EXPRESS_SERVER_DEBUG="invoice-mailer:*"
+
+docker-compose up -d
+docker-compose logs -f node-server
