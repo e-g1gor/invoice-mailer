@@ -1,6 +1,18 @@
 version: "3"
 
 services:
+
+  redis:
+    image: redis
+    container_name: redis
+    healthcheck:
+      test: /bin/bash /docker-healthcheck
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - ./docker/redis/docker-healthcheck:/docker-healthcheck
+
   pg-admin:
     depends_on:
       - "postgres"
@@ -32,12 +44,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     build:
       context: ./
       dockerfile: ./docker/node-server/Dockerfile
     container_name: invoice-mailer
     restart: on-failure
     environment:
+      REDIS_HOST: redis
       NODE_ENV: development
       DEBUG: invoice-mailer:*
       PORT: 80
