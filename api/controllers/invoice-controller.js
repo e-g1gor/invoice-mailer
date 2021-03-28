@@ -12,7 +12,6 @@ export class invoiceController {
    * @param {*} res
    */
   static async requestInvoice(req, res) {
-    // TODO: use some task sheduling
     try {
       // Validate
       const bodyCheck = invoiceValidate.requestInvoiceBody(req.body)
