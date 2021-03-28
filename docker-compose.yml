@@ -79,7 +79,6 @@ services:
       context: ./
       dockerfile: ./docker/pdf-renderer/Dockerfile
     container_name: pdf-renderer
-    user: "1000"
     environment:
       REDIS_HOST: redis
     volumes:

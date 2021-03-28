@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo chmod -cR ugo+rw .
+chmod -cR ugo+rw .
 
 export REDIS_HOST=redis
 export NODE_ENV=development
