@@ -1,15 +1,15 @@
 FROM node:15-buster
 
+RUN apt-get update
+RUN apt-get install -y chromium
+
 RUN mkdir -p /usr/webapp
 
 WORKDIR /usr/webapp
 
-COPY ./api ./api
 COPY ./config ./config
-COPY ./app.js ./
-COPY ./package*.json ./
-
-COPY ./docker/node-server/entrypoint.sh ./
+COPY ./pdf-renderer ./pdf-renderer
+COPY ./docker/pdf-renderer/entrypoint.sh ./
 
 RUN chown -cR node .
 USER node

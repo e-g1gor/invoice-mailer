@@ -1,7 +1,10 @@
 #!/bin/bash
 
+sudo chmod -cR ugo+rw .
 
-NODE_ENV=production
+export REDIS_HOST=redis
+export NODE_ENV=production
 
-docker-compose up -d node-server
+docker-compose down
+docker-compose up --build --force-recreate -d node-server
 docker-compose logs --tail=0 --follow

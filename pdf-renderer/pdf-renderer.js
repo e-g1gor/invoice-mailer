@@ -1,20 +1,15 @@
 "use strict"
 
 import htmlToPdf from "html-pdf-node"
-import { Worker, QueueEvents } from "bullmq"
+import { Worker } from "bullmq"
 
 import { myEmail } from "../config/mail.js"
 import {
   REDIS_CONNECTION_OPTION,
   RENDER_PDF_QUEUE_NAME,
-  MailSendQueue
+  MailSendQueue,
+  pdfQueueEvents
 } from "../config/bullmq-connection.js"
-
-// TODO: remove after worker separation to service
-export const pdfQueueEvents = new QueueEvents(
-  RENDER_PDF_QUEUE_NAME,
-  REDIS_CONNECTION_OPTION
-)
 
 // PDF rendering worker
 export const pdfRenderWorker = new Worker(

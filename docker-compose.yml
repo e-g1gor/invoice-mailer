@@ -48,6 +48,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      pdf-renderer:
+        condition: service_started
     build:
       context: ./
       dockerfile: ./docker/node-server/Dockerfile
@@ -61,21 +63,31 @@ services:
       PGUSER: postgres
       PGPASSWORD: changeme
     volumes:
-      # Save npm cache and node_modules for development, to prevent redownloading dependencies
-      - ./volumes/node-server/.npm:/home/node/.npm
-      - ./volumes/node-server/node_modules:/usr/webapp/node_modules
       # Mount sources for development, to avoid container recreation
       - ./app.js:/usr/webapp/app.js
       - ./api:/usr/webapp/api
-      - ./pdf-renderer:/usr/webapp/pdf-renderer
       - ./mail-sender:/usr/webapp/mail-sender
       - ./config:/usr/webapp/config
       - ./bin:/usr/webapp/bin
       - ./package.json:/usr/webapp/package.json:ro
       - ./docker/node-server/entrypoint.sh:/usr/webapp/entrypoint.sh
-      - ./volumes/data:/usr/webapp/data
     ports:
       - 3000:80
+
+  pdf-renderer:
+    build:
+      context: ./
+      dockerfile: ./docker/pdf-renderer/Dockerfile
+    container_name: pdf-renderer
+    user: "1000"
+    environment:
+      REDIS_HOST: redis
+    volumes:
+      # Mount sources for development, to avoid container recreation
+      - ./pdf-renderer:/usr/webapp/pdf-renderer
+      - ./config:/usr/webapp/config
+      - ./pdf-renderer/package.json:/usr/webapp/package.json:ro
+      - ./docker/pdf-renderer/entrypoint.sh:/usr/webapp/entrypoint.sh
 
   swagger-ui:
     depends_on:

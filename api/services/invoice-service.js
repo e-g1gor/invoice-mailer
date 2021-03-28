@@ -7,10 +7,9 @@ import pug from "pug"
 
 import DAO from "./dao.js"
 
-import { PdfRenderQueue as pdfQueue } from "../../config/bullmq-connection.js"
+import { PdfRenderQueue as pdfQueue, pdfQueueEvents} from "../../config/bullmq-connection.js"
 
 // TODO: separate workers to service
-import { pdfQueueEvents } from "../../pdf-renderer/pdf-renderer.js"
 import { mailQueueEvents } from "../../mail-sender/mail-sender.js"
 
 /**
