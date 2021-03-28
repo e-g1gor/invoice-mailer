@@ -106,18 +106,14 @@ export const invoiceService = {
 }
 
 // Log invoice processing results
-mailQueueEvents.on("completed", async (job) => {
-  const { id } = job.returnvalue
+mailQueueEvents.on("completed", async (e) => {
+  const { id } = e.returnvalue
   invoiceService.updateInvoiceStatus(id, "complete")
 })
 // TODO: process failures
-pdfQueueEvents.on("failed", async (job) => {
-  console.log(job.failedReason)
-  const {id} = job.data.invoiceData.id
-  invoiceService.updateInvoiceStatus(id, "failed")
+pdfQueueEvents.on("failed", async (e) => {
+  console.log(e.failedReason)
 })
-mailQueueEvents.on("failed", async (job) => {
-  console.log(job.failedReason)
-  const {id} = job.data.invoiceData.id
-  invoiceService.updateInvoiceStatus(id, "failed")
+mailQueueEvents.on("failed", async (e) => {
+  console.log(e.failedReason)
 })

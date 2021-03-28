@@ -2,10 +2,9 @@
 
 chmod -cR ugo+rw .
 
-export REDIS_HOST=redis
-export NODE_ENV=development
-export EXPRESS_SERVER_DEBUG="invoice-mailer:*"
-export CURRENT_UID=$(id -u):$(id -g)
+REDIS_HOST=redis
+NODE_ENV=development
+EXPRESS_SERVER_DEBUG="invoice-mailer:*"
 
 
 docker-compose stop
