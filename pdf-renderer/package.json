@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "bullmq": "1.15.1",
-    "html-pdf-node": "1.0.7"
+    "puppeteer-core": "8.0.0"
   }
 }

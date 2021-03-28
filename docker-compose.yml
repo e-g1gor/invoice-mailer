@@ -81,6 +81,7 @@ services:
       context: ./
       dockerfile: ./docker/pdf-renderer/Dockerfile
     container_name: pdf-renderer
+    init: true
     depends_on:
       redis:
         condition: service_healthy

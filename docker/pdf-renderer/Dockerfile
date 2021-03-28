@@ -21,4 +21,4 @@ COPY ./docker/pdf-renderer/entrypoint.sh ./
 RUN chown -cR node .
 USER node
 
-ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
+ENTRYPOINT /bin/bash entrypoint.sh

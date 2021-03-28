@@ -1,6 +1,6 @@
 "use strict"
 
-import htmlToPdf from "html-pdf-node"
+import puppeteer from "puppeteer-core"
 import { Worker } from "bullmq"
 
 import { myEmail } from "../config/mail.js"
@@ -10,6 +10,9 @@ import {
   MailSendQueue,
   pdfQueueEvents
 } from "../config/bullmq-connection.js"
+
+const PUPPETEER_EXECUTABLE_PATH =
+  process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/google-chrome-stable"
 
 // PDF rendering worker
 const pdfRenderWorker = new Worker(
@@ -25,7 +28,15 @@ const pdfRenderWorker = new Worker(
       options
     )
     // Render pdf
-    const pdf = await htmlToPdf.generatePdf({ content: html }, renderOptions)
+    const browser = await puppeteer.launch({
+      executablePath: PUPPETEER_EXECUTABLE_PATH,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      ignoreHTTPSErrors: true,
+      dumpio: false
+    })
+    const page = await browser.newPage()
+    page.setContent(html)
+    const pdf = await page.pdf(renderOptions)
     return {
       id: invoiceData.id,
       customerEmail: invoiceData.customerEmail,
@@ -68,7 +79,7 @@ pdfQueueEvents.on("completed", async (job) => {
   )
 })
 
-pdfQueueEvents.on("failed", (job) => {
+pdfQueueEvents.on("failed", (e) => {
   console.log("PDF render failed")
-  console.log(job.failedReason)
+  console.log(e.failedReason)
 })
